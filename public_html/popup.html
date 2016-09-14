@@ -1,0 +1,46 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+  <head>
+    <title>My Minutes</title>
+    <style>
+      body {
+        min-width: 300px;
+        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+        font-size: 100%;
+      }
+      h1 {
+          text-align: center;
+      }
+      #message{
+        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+        font-size: 100%;
+      }
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+     -->
+    
+    
+  </head>
+  <body>
+        <h1>My Minutes</h1>
+        <p id ="message"></p>
+        
+        <button id="button1">Click!</button>
+      
+      
+      
+    <!--Scripts-->
+    <script src="../javaScript/popup.js"></script>
+  </body>
+</html>
+

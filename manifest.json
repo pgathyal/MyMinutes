@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    "name": "First extension",
+    "description": "This extension does something",
+    "version": "1.0",
+    
+    "browser_action":{
+        "default_title": "Click here!",
+        "default_icon": "images/icon.png",
+        "default_popup": "public_html/popup.html"
+    },
+    "background":{
+        "scripts": ["public_html/background.js"],
+        "persistent": true
+    },
+    "permissions": [
+        "background",
+        "webRequest",
+        "webRequestBlocking",
+        "notifications",
+        "activeTab",
+        "https://ajax.googleapis.com/",
+        "<all_urls>"
+    ]
+}
