@@ -20,6 +20,7 @@
         "notifications",
         "activeTab",
         "https://ajax.googleapis.com/",
-        "<all_urls>"
+        "<all_urls>",
+        "tabs"
     ]
 }

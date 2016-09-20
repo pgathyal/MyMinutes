@@ -11,4 +11,4 @@ chrome.webRequest.onBeforeRequest.addListener(
         {urls: ["*://9gag.com/*"]},
         ["blocking"]
 );
-     
+  
