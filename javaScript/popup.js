@@ -10,36 +10,42 @@ function myFunction(){
     notification.show = function(){ setTimeout(notification.close, 5000);};
 }
 
-function getUrl(){
+function getUrl(callback){
     chrome.tabs.query({
         active:true,
         currentWindow:true
     },function (tabs){
-        var url = new URL(tabs[0].url);
-        var domain = url.domain;
-        document.getElementById("message").innerHTML = "Current page:" + domain;
+        callback(tabs);
         });
+}
+
+function get_domain(url){
+    var a = document.createElement('a')
+    a.setAttribute('href',url);
+    return a.hostname;
 }
 
 function getDomain(tabs){
     
-    
-    document.getElementById("message").innerHTML = "Current page:" + domain;
+        var url = tabs[0].url;
+        //var domain = url.domain;
+        if(url!=undefined){
+        document.getElementById("message").innerHTML = "Current page:\t\t" + get_domain(url);
+        }
+        else{
+           document.getElementById("message").innerHTML = "No page"; 
+        }
 }
 
-function saveUrl(){
-  
-     
-        var domain = getUrl(getDomain);
-        
-        
-    
+function saveUrl(){  
+        getUrl(getDomain);
 }
 
 window.onload=function(){
-    var button1 = document.getElementById("button1");
+   // var button1 = document.getElementById("button1");
+   // var url_button = document.getElementById("url_button");
     button1.addEventListener("click", myFunction);
-    url_button.addEventListener("click", getUrl);
+    url_button.addEventListener("click", saveUrl);
 }
 
 
