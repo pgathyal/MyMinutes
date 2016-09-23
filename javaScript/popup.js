@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+var selected_Url;
+var url_List;
 
+function my_Notification(website){
 
-function myFunction(){
-
-    var notification = new Notification("Title",{body: "9gag Unavailable"});
+    var notification = new Notification("Title",{body: website + " Unavailable"});
     notification.show = function(){ setTimeout(notification.close, 5000);};
 }
 
@@ -19,8 +20,8 @@ function getUrl(callback){
         });
 }
 
-function get_domain(url){
-    var a = document.createElement('a')
+function clean_URL(url){
+    var a = document.createElement('a');
     a.setAttribute('href',url);
     return a.hostname;
 }
@@ -30,7 +31,9 @@ function getDomain(tabs){
         var url = tabs[0].url;
         //var domain = url.domain;
         if(url!=undefined){
-        document.getElementById("message").innerHTML = "Current page:\t\t" + get_domain(url);
+            selected_URL = clean_URL(url);
+            url_List.push(selectedURL);
+            my_Notification(clean_URL(url));
         }
         else{
            document.getElementById("message").innerHTML = "No page"; 
@@ -44,7 +47,7 @@ function saveUrl(){
 window.onload=function(){
    // var button1 = document.getElementById("button1");
    // var url_button = document.getElementById("url_button");
-    button1.addEventListener("click", myFunction);
+   //button1.addEventListener("click", my_Notification);
     url_button.addEventListener("click", saveUrl);
 }
 
