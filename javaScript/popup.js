@@ -20,24 +20,32 @@ function getUrl(callback){
         });
 }
 
+function save_to_Storage(url){
+    chrome.storage.sync.set({'myUrls':url}, function(){
+        my_Notification(url);;
+    });
+}
+
 function clean_URL(url){
     var a = document.createElement('a');
     a.setAttribute('href',url);
-    return a.hostname;
+    var hostname = a.hostname;
+    save_to_Storage(hostname);
+    return hostname;
+}
+
+function if_defined(url){
+    if(url!==undefined)
+        return clean_URL(url);
+    else 
+        return "No Page";
+    
 }
 
 function getDomain(tabs){
-    
         var url = tabs[0].url;
         //var domain = url.domain;
-        if(url!=undefined){
-            selected_URL = clean_URL(url);
-            url_List.push(selectedURL);
-            my_Notification(clean_URL(url));
-        }
-        else{
-           document.getElementById("message").innerHTML = "No page"; 
-        }
+        document.getElementById("message").innerHTML = if_defined(url); 
 }
 
 function saveUrl(){  

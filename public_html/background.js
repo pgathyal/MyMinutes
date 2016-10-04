@@ -5,8 +5,9 @@
  */
 
 
-//Todo: receive variable array list from popup
-var url_list;
+var url_list = ["*://9gag.com/*"];
+
+
 
 chrome.webRequest.onBeforeRequest.addListener(
         function() { 
