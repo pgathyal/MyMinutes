@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 var selected_Url;
-var url_List;
+var bkPage = chrome.extension.getBackgroundPage();
 
 function my_Notification(website){
 
-    var notification = new Notification("Title",{body: website + " Unavailable"});
+    var notification = new Notification("My Minutes",{body: website + " unavailable"});
     notification.show = function(){ setTimeout(notification.close, 5000);};
 }
 
@@ -22,7 +22,8 @@ function getUrl(callback){
 
 function save_to_Storage(url){
     chrome.storage.sync.set({'myUrls':url}, function(){
-        my_Notification(url);;
+        bkPage.get_Url();
+        my_Notification(url);
     });
 }
 
