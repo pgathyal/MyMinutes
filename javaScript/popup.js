@@ -31,7 +31,10 @@ function clean_URL(url){
     var a = document.createElement('a');
     a.setAttribute('href',url);
     var hostname = a.hostname;
-    save_to_Storage(hostname);
+    
+    //TODO: Remove commenting below, when ready to store to storage
+    //save_to_Storage(hostname);
+    
     return hostname;
 }
 
