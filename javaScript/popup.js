@@ -7,7 +7,7 @@ var bkPage = chrome.extension.getBackgroundPage();
 
 function my_Notification(website){
 
-    var notification = new Notification("My Minutes",{body: website + " unavailable"});
+    var notification = new Notification("My Minutes",{body: website + " saved to storage, now unavailable"});
     notification.show = function(){ setTimeout(notification.close, 5000);};
 }
 
@@ -31,9 +31,7 @@ function clean_URL(url){
     var a = document.createElement('a');
     a.setAttribute('href',url);
     var hostname = a.hostname;
-    
-    //TODO: Remove commenting below, when ready to store to storage
-    //save_to_Storage(hostname);
+    save_to_Storage(hostname);
     
     return hostname;
 }
@@ -56,7 +54,7 @@ function saveUrl(){
         getUrl(getDomain);
 }
 
-window.onload=function(){
+window.onload = function(){
    // var button1 = document.getElementById("button1");
    // var url_button = document.getElementById("url_button");
    //button1.addEventListener("click", my_Notification);

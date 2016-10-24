@@ -4,9 +4,6 @@
  * and open the template in the editor.
  */
 
-
-//TODO: Test for dynamic increase in url_list
-
 var url_list = ["*://9gag.com/*"];
 
 function stringEncapsulate(url){
@@ -16,17 +13,28 @@ function stringEncapsulate(url){
 function get_Url(){
     chrome.storage.sync.get('myUrls',function(data){
        url_list.push(stringEncapsulate(data.myUrls));
+       updateListener();
     });
 }
 
-//TODO: Implement storage Onchange listener - renew webRequest listener with new url_list
+function updateListener(){
+    if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
+    {
+        chrome.webRequest.onBeforeRequest.removeListener(blockingListener);
+        chrome.webRequest.onBeforeRequest.addListener(blockingListener,
+                        {urls:url_list},
+                        ["blocking"]
+        );
+    }
+}
 
-//TODO: Implement update listener
+function blockingListener(){
+    return {cancel:true};
+}
+
 
 chrome.webRequest.onBeforeRequest.addListener(
-        function() { 
-            return {cancel: true};
-        },
+        blockingListener,
         {urls: url_list},
         ["blocking"]
 );
