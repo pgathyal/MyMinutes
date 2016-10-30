@@ -8,7 +8,9 @@ var bkPage = chrome.extension.getBackgroundPage();
 function my_Notification(website){
 
     var notification = new Notification("My Minutes",{body: website + " saved to storage, now unavailable"});
-    notification.show = function(){ setTimeout(notification.close, 5000);};
+    setTimeout(function(){
+        notification.close();},
+        2000);
 }
 
 function getUrl(callback){
