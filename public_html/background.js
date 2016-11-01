@@ -11,8 +11,9 @@ function stringEncapsulate(url){
 }
 
 function get_Url(){
-    chrome.storage.sync.get('myUrls',function(data){
-       url_list.push(stringEncapsulate(data.myUrls));
+    chrome.storage.sync.get('myWebsites',function(data){
+        console.log(data);
+       //url_list.push(stringEncapsulate(data.myUrls));
        updateListener();
     });
 }

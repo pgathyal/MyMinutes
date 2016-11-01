@@ -22,10 +22,10 @@ function getUrl(callback){
         });
 }
 
-function save_to_Storage(url){
-    chrome.storage.sync.set({'myUrls':url}, function(){
+function save_to_Storage(website){
+    chrome.storage.sync.set({'myWebsites':website}, function(){
         bkPage.get_Url();
-        my_Notification(url);
+        my_Notification(website.url);
     });
 }
 
@@ -33,7 +33,14 @@ function clean_URL(url){
     var a = document.createElement('a');
     a.setAttribute('href',url);
     var hostname = a.hostname;
-    save_to_Storage(hostname);
+    try{
+        var time = document.getElementById("text_field").value;
+        var website = new Website(hostname,time);
+        save_to_Storage(website);
+    }catch(err){
+        if(time == null)
+            alert(err);
+    }
     
     return hostname;
 }
@@ -52,7 +59,7 @@ function getDomain(tabs){
         document.getElementById("message").innerHTML = if_defined(url); 
 }
 
-function saveUrl(){  
+function saveUrl(){
         getUrl(getDomain);
 }
 
@@ -62,5 +69,13 @@ window.onload = function(){
    //button1.addEventListener("click", my_Notification);
     url_button.addEventListener("click", saveUrl);
 }
+
+//-----------
+
+function Website(url, remainingTime){
+    this.url = url;
+    this.remainingTime = remainingTime;
+}
+
 
 
