@@ -9,17 +9,21 @@ var url_list = ["*://9gag.com/*","*://www.reddit.com/*"];
 
 function get_Url(){
     chrome.storage.sync.get('myWebsites',function(data){
-        console.log(data);
+         console.log(data);
        //url_list.push(stringEncapsulate(data.myUrls));
        updateListener();
     });
 }
 
-function save_to_Storage(website){
-    chrome.storage.sync.set({'myWebsites':website}, function(){
-        get_Url();
-    });
-}
+//Listener to get message to start get_Url
+chrome.runtime.onMessage.addListener(
+        function(request,sender,response)
+        {
+            if(request.message === "Storing Data"){
+                get_Url();
+        }
+    
+});
 
 function updateListener(){
     if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
@@ -40,7 +44,6 @@ function blockingListener(details){
             //else cancel:false
         //else stop timer - new remainingTime
         //cancel:false
-        console.log(details.url);
     return {cancel:true};
 }
 
@@ -51,12 +54,13 @@ chrome.webRequest.onBeforeRequest.addListener(
         ["blocking"]
 );
 
+/*
 chrome.tabs.onActivated.addListener(
         function(){
           chrome.tabs.getSelected(null,function(tab){
-              console.log(tab.url);
+              //console.log(tab.url);
         }); 
 });
-
+*/
 //--------------------
 

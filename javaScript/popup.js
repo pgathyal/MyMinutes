@@ -16,6 +16,13 @@ function my_Notification(website){
         2000);
 }
 
+function save_to_Storage(website){
+    chrome.storage.sync.set({'myWebsites':website}, function(){
+        //Send message to background page
+        chrome.runtime.sendMessage({message: "Storing Data"});
+    });
+}
+
 function clean_URL(url){
     //Creating an a element to extract hostname
     var a = document.createElement('a');
@@ -25,8 +32,7 @@ function clean_URL(url){
     my_Notification(hostname);
     var time = document.getElementById("text_field").value;
     var website = new Website(stringEncapsulate(hostname),parseInt(time));
-    console.log(website);
-   // bkPage.save_to_Storage(website);
+    save_to_Storage(website);
     
     return hostname;
 }
