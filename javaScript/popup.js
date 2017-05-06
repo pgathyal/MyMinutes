@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var selected_Url;
+//var selected_Url = new Array();
 var bkPage = chrome.extension.getBackgroundPage();
 
 function stringEncapsulate(url){
@@ -16,11 +16,29 @@ function my_Notification(website){
         2000);
 }
 
-function save_to_Storage(website){
-    chrome.storage.sync.set({'myWebsites':website}, function(){
-        //Send message to background page
-        chrome.runtime.sendMessage({message: "Storing Data"});
+function clear_Storage(){
+    chrome.storage.local.clear(function(){
+        document.getElementById("message").innerHTML = "Clearing storage..";
+        var error = chrome.runtime.lastError;
+        if(error){
+            console.log(error);
+        }
+        chrome.runtime.sendMessage({message: "Update listener"});
     });
+}
+//----------------------------------------
+function save_to_Storage(website){
+    chrome.storage.local.get({myWebsites: []}, function (result) {
+        var Websites = result.myWebsites;
+        Websites.push(website);
+        chrome.storage.local.set({myWebsites: Websites}, function(){
+                console.log("Sending message");
+                chrome.runtime.sendMessage({message: "Storing Data"},function(response){
+                    document.getElementById("message").innerHTML = "Response from background :" + response.result;
+                });
+        });      
+    }); 
+
 }
 
 function clean_URL(url){
@@ -52,6 +70,8 @@ function if_defined(url){
 }
 //-----------------------------------
 
+
+
 function saveUrl(){
     var time = document.getElementById("text_field").value;
     //Validating textbox for int
@@ -67,8 +87,17 @@ function saveUrl(){
        document.getElementById("message").innerHTML = "Invalid entry"; 
 }
 
+function getStorage_popup(){
+    chrome.storage.local.get(function(result){console.log(result);});
+}
+
+
+
 window.onload = function(){
     url_button.addEventListener("click", saveUrl);
+    get_storage.addEventListener("click", getStorage_popup);
+    get_bstorage.addEventListener("click", bkPage.getStorage_bkg);
+    clear_storage.addEventListener("click", clear_Storage);
 };
 
 //-----------------

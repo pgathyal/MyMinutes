@@ -4,26 +4,51 @@
  * and open the template in the editor.
  */
 
-var url_list = ["*://9gag.com/*","*://www.reddit.com/*"];
-
+var url_list = ["*://9gag.com/*"];
+//var port = chrome.runtime.connect({name:"mycontentscript"});
 
 function get_Url(){
-    chrome.storage.sync.get('myWebsites',function(data){
-         console.log(data);
-       //url_list.push(stringEncapsulate(data.myUrls));
-       updateListener();
+    chrome.storage.local.get({myWebsites: []}, function(data){
+        console.log("Reached background-getURL..");
+         var websites = data.myWebsites;
+             for(var i=0; i<websites.length; i++){
+                url_list.push(websites[i].url);
+             }
+        
+        console.log("After push - " + url_list);
+        console.log(url_list);
+       
+        updateListener();
     });
 }
 
+
+function getStorage_bkg(){
+    chrome.storage.local.get(function(result){console.log(result);});
+}
 //Listener to get message to start get_Url
 chrome.runtime.onMessage.addListener(
-        function(request,sender,response)
+        function(request,sender,sendResponse)
         {
-            if(request.message === "Storing Data"){
+            console.log("Reached background listener");
+            switch(request.message){
+            case "Storing Data" : 
+                console.log("Passed message check..accessing storage");
                 get_Url();
+                sendResponse({result: "Succesfully stored"});
+                break;
+            case "Update listener" :
+                url_list = ["*://9gag.com/*"];
+                updateListener();
+            }
         }
-    
+);
+
+chrome.runtime.onConnect.addListener(function(port){
+    port.postMessage({greeting:"hello"});
 });
+
+
 
 function updateListener(){
     if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
