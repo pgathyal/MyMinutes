@@ -1,54 +1,88 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
+var rTime = "IDle";
+var pUrl = "IDle";
+var bMessage = "IDle";
+
+//Get_url passes url to this parameter to block
 var url_list = ["*://9gag.com/*"];
-//var port = chrome.runtime.connect({name:"mycontentscript"});
 
+/*Wrapping string function -
+        returns 2 values : [0]hostname,[1]wrapped hostname
+*/
+function stringEncapsulate(url){
+    var a = document.createElement('a');
+    a.setAttribute('href',url);
+    var hostname = a.hostname;
+    return [hostname,"*://" + hostname + "/*"];
+}
+
+//------------------------------------------------------------------------------
+//Main save function
+function save_to_Storage(website){
+    chrome.storage.local.get({myWebsites: []}, function (data) {
+        var websites = data.myWebsites;
+        var present = false;
+        var timeLessthan = -1;
+        for(var i=0; i<websites.length; i++){
+            if(websites[i].url === website.url){
+                if(websites[i].remainingTime > website.remainingTime){
+                    timeLessthan = i;
+                    break;
+                }
+                present = true;
+                break;
+            }
+        }
+        if(present===false){
+            websites.push(website);
+            saveArray_and_refresh(websites);
+        }
+        else if(timeLessthan >= 0){
+            //Replace old with new
+            websites[timeLessthan] = website;
+            saveArray_and_refresh(websites);
+            bMessage = "Background: Replaced with "
+        }
+        else{
+            bMessage = "Backgroung: Url already in storage";
+        }      
+    }); 
+}
+//Helper to the main save function
+function saveArray_and_refresh(websites){
+    chrome.storage.local.set({myWebsites: websites}, function(){
+        bMessage = "Response from background : Stored Data";
+        get_Url();
+    }); 
+}
+
+//Helper to main save function
 function get_Url(){
     chrome.storage.local.get({myWebsites: []}, function(data){
-        console.log("Reached background-getURL..");
          var websites = data.myWebsites;
              for(var i=0; i<websites.length; i++){
+                //if(websites[i].remainingTime === 0)
                 url_list.push(websites[i].url);
              }
         
-        console.log("After push - " + url_list);
+        console.log("After push - ");
         console.log(url_list);
        
         updateListener();
     });
 }
-
-
-function getStorage_bkg(){
-    chrome.storage.local.get(function(result){console.log(result);});
-}
-//Listener to get message to start get_Url
+//------------------------------------------------------------------------------
+//Listener to get messages
 chrome.runtime.onMessage.addListener(
         function(request,sender,sendResponse)
         {
-            console.log("Reached background listener");
             switch(request.message){
-            case "Storing Data" : 
-                console.log("Passed message check..accessing storage");
-                get_Url();
-                sendResponse({result: "Succesfully stored"});
-                break;
-            case "Update listener" :
+            case "Reset listener" :
                 url_list = ["*://9gag.com/*"];
                 updateListener();
             }
         }
 );
-
-chrome.runtime.onConnect.addListener(function(port){
-    port.postMessage({greeting:"hello"});
-});
-
-
 
 function updateListener(){
     if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
@@ -62,13 +96,6 @@ function updateListener(){
 }
 
 function blockingListener(details){
-    //go through url_list
-        //if active
-            //countdowntimer - using remainingTime
-            //if remainingTime < 0 cancel:true
-            //else cancel:false
-        //else stop timer - new remainingTime
-        //cancel:false
     return {cancel:true};
 }
 
@@ -80,12 +107,53 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 /*
+ * Actively listen to active tabs
+ *      -Find out if active means viewing 
+ * Cross check with storage
+ * If with storage - inject timer script
+ * Script on exit - turn off timer...store value 
+*/
 chrome.tabs.onActivated.addListener(
         function(){
-          chrome.tabs.getSelected(null,function(tab){
-              //console.log(tab.url);
-        }); 
+            chrome.tabs.getSelected(null,function(tab){
+                chrome.storage.local.get({myWebsites: []}, function(data){
+                    var websites = data.myWebsites;
+                    for(var i=0; i<websites.length; i++){
+                        var storageSite = stringEncapsulate(tab.url);
+                        if(storageSite[1] === websites[i].url){
+                            // countdowntimer(websites[i]);
+                        }
+                         //console.log("matches with " + websites[i].url);
+                    }
+                 
+                });
+            }); 
 });
-*/
-//--------------------
 
+window.onload = get_Url();
+    
+
+
+/*
+ * TODO: Programatically inject this script/funciton every time an entered url is 
+            active. Look into on exit script to store remaining time
+*/
+function countdowntimer(site){
+    
+    rTime = site.remainingTime;//in seconds for now
+    pUrl = site.url;
+    var interval = setInterval(function(){
+        rTime--;
+        site.remainingTime = rTime;
+        if(site.remainingTime === 0){
+            //console.log("Remaining time = 0");
+            get_Url();
+            rTime = "IDLE";
+            pUrl = "IDLE";
+            clearInterval(interval);
+        } 
+    },1000);
+    //document.getElementById("countdown").innerHTML = now;
+}
+
+//May need to call get_Url for every reload of the extension
