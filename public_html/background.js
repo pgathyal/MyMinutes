@@ -26,38 +26,42 @@ function save_to_Storage(website){
         for(var i=0; i<websites.length; i++){
             if(websites[i].url === website.url){
                 if(websites[i].remainingTime > website.remainingTime){
+                    console.log("Hit inner if-statement, new rT is lower");
                     timeLessthan = i;
                     break;
                 }
+                console.log("Hit outer if-statement, url already present, new rt is higher ");
                 present = true;
                 break;
             }
         }
-        if(present===false){
-            websites.push(website);
-            saveArray_and_refresh(websites);
-        }
-        else if(timeLessthan >= 0){
+        if(timeLessthan >= 0){
             //Replace old with new
             websites[timeLessthan] = website;
             saveArray_and_refresh(websites);
-            bMessage = "Background: Replaced with "
+            bMessage = "Background: Updated entry";
+        }
+        else if(present===false){
+            websites.push(website);
+            saveArray_and_refresh(websites);
         }
         else{
-            bMessage = "Backgroung: Url already in storage";
+            bMessage = "Background: Url already in storage";
         }      
     }); 
 }
 //Helper to the main save function
 function saveArray_and_refresh(websites){
     chrome.storage.local.set({myWebsites: websites}, function(){
-        bMessage = "Response from background : Stored Data";
+        bMessage = "Background: Stored Data";
         get_Url();
     }); 
 }
 
 //Helper to main save function
 function get_Url(){
+    
+    url_list = ["*://9gag.com/*"];
     chrome.storage.local.get({myWebsites: []}, function(data){
          var websites = data.myWebsites;
              for(var i=0; i<websites.length; i++){
@@ -121,7 +125,7 @@ chrome.tabs.onActivated.addListener(
                     for(var i=0; i<websites.length; i++){
                         var storageSite = stringEncapsulate(tab.url);
                         if(storageSite[1] === websites[i].url){
-                            // countdowntimer(websites[i]);
+                            countdowntimer(websites[i]);
                         }
                          //console.log("matches with " + websites[i].url);
                     }
@@ -131,8 +135,6 @@ chrome.tabs.onActivated.addListener(
 });
 
 window.onload = get_Url();
-    
-
 
 /*
  * TODO: Programatically inject this script/funciton every time an entered url is 
@@ -140,7 +142,7 @@ window.onload = get_Url();
 */
 function countdowntimer(site){
     
-    rTime = site.remainingTime;//in seconds for now
+    /*rTime = site.remainingTime;//in seconds for now
     pUrl = site.url;
     var interval = setInterval(function(){
         rTime--;
@@ -154,6 +156,11 @@ function countdowntimer(site){
         } 
     },1000);
     //document.getElementById("countdown").innerHTML = now;
+    */
+   console.log("Reached Countdowntimer func");
+   if(window.focus()){
+       alert(site.url + " is focused");
+   }
 }
 
 //May need to call get_Url for every reload of the extension
