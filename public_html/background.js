@@ -1,10 +1,16 @@
 
 var rTime = "IDle";
 var pUrl = "IDle";
-var bMessage = "IDle";
 
 //Get_url passes url to this parameter to block
 var url_list = ["*://9gag.com/*"];
+var activeTab = {
+    url : null,
+    remainingTime : null,
+    startTime: null,
+    endTime: null,
+    present: false
+};
 
 /*Wrapping string function -
         returns 2 values : [0]hostname,[1]wrapped hostname
@@ -26,55 +32,51 @@ function save_to_Storage(website){
         for(var i=0; i<websites.length; i++){
             if(websites[i].url === website.url){
                 if(websites[i].remainingTime > website.remainingTime){
-                    console.log("Hit inner if-statement, new rT is lower");
                     timeLessthan = i;
                     break;
                 }
-                console.log("Hit outer if-statement, url already present, new rt is higher ");
                 present = true;
                 break;
             }
         }
         if(timeLessthan >= 0){
             //Replace old with new
-            websites[timeLessthan] = website;
-            saveArray_and_refresh(websites);
-            bMessage = "Background: Updated entry";
+                websites[timeLessthan] = website;
+                chrome.runtime.sendMessage({message:"Updating (message)",value:"Updating entry.."});
+                saveArray_and_refresh(websites);
         }
         else if(present===false){
+            //New website
             websites.push(website);
             saveArray_and_refresh(websites);
         }
         else{
-            bMessage = "Background: Url already in storage";
-        }      
+            chrome.runtime.sendMessage({message:"Updating (message)",value:"Value already stored"});
+        } 
     }); 
 }
 //Helper to the main save function
 function saveArray_and_refresh(websites){
     chrome.storage.local.set({myWebsites: websites}, function(){
-        bMessage = "Background: Stored Data";
-        get_Url();
+        chrome.runtime.sendMessage({message:"Updating (message)",value:"Stored Entry"});
+        _pushToBlockingArray();
+        _getTabs();
     }); 
 }
 
-//Helper to main save function
-function get_Url(){
-    
-    url_list = ["*://9gag.com/*"];
+function _pushToBlockingArray(){
     chrome.storage.local.get({myWebsites: []}, function(data){
-         var websites = data.myWebsites;
-             for(var i=0; i<websites.length; i++){
-                //if(websites[i].remainingTime === 0)
-                url_list.push(websites[i].url);
-             }
-        
-        console.log("After push - ");
-        console.log(url_list);
-       
-        updateListener();
-    });
+                    var websites = data.myWebsites;
+                    for(var i=0; i<websites.length; i++){
+                            if(websites[i].remainingTime <= 0){
+                                url_list.push(websites[i].url);
+                                
+                            }
+                        }
+                        updateListener();
+                    });
 }
+
 //------------------------------------------------------------------------------
 //Listener to get messages
 chrome.runtime.onMessage.addListener(
@@ -82,13 +84,36 @@ chrome.runtime.onMessage.addListener(
         {
             switch(request.message){
             case "Reset listener" :
-                url_list = ["*://9gag.com/*"];
-                updateListener();
-            }
+                clearStorage();
+                break;
+            case "Save to storage" :
+                save_to_Storage(request.value);
+                break;
         }
-);
+});
+
+function clearStorage(){
+    console.log("Clearing storage...");
+    chrome.storage.local.clear(function(){
+        chrome.runtime.sendMessage({message: "Update (message)",value: "Clearing.."});
+        var error = chrome.runtime.lastError;
+        if(error){
+            console.log(error);
+        }
+        url_list = ["*://9gag.com/*"];
+        activeTab = {
+            url : null,
+            remainingTime : null,
+            startTime: null,
+            endTime: null,
+            present: false
+        };
+        updateListener();
+    });
+}
 
 function updateListener(){
+    console.log("Updatinglistener function called, blocking array: " + url_list);
     if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
     {
         chrome.webRequest.onBeforeRequest.removeListener(blockingListener);
@@ -106,9 +131,11 @@ function blockingListener(details){
 
 chrome.webRequest.onBeforeRequest.addListener(
         blockingListener,
-        {urls: url_list},
+        {urls : url_list},
         ["blocking"]
 );
+
+
 
 /*
  * Actively listen to active tabs
@@ -117,50 +144,66 @@ chrome.webRequest.onBeforeRequest.addListener(
  * If with storage - inject timer script
  * Script on exit - turn off timer...store value 
 */
+
+//Called when creating and switching tabs
 chrome.tabs.onActivated.addListener(
         function(){
-            chrome.tabs.getSelected(null,function(tab){
-                chrome.storage.local.get({myWebsites: []}, function(data){
-                    var websites = data.myWebsites;
-                    for(var i=0; i<websites.length; i++){
-                        var storageSite = stringEncapsulate(tab.url);
-                        if(storageSite[1] === websites[i].url){
-                            countdowntimer(websites[i]);
-                        }
-                         //console.log("matches with " + websites[i].url);
-                    }
-                 
-                });
-            }); 
+            console.log("OnActivated called..");
+           _getTabs();
 });
 
-window.onload = get_Url();
+//Creating a newtab also triggers the onUpdated listener 
+//along with the onActivated listener.
+chrome.tabs.onUpdated.addListener(
+        function(tabId,info){
+            if(info.status === 'complete' && info.url !== 'newtab'){
+                console.log("onUpdated called");
+               _getTabs();
+           }
+});
+
+window.onload = function(){
+    console.log("Window loaded");
+    _pushToBlockingArray();
+    _getTabs();
+};
+
 
 /*
- * TODO: Programatically inject this script/funciton every time an entered url is 
-            active. Look into on exit script to store remaining time
-*/
-function countdowntimer(site){
-    
-    /*rTime = site.remainingTime;//in seconds for now
-    pUrl = site.url;
-    var interval = setInterval(function(){
-        rTime--;
-        site.remainingTime = rTime;
-        if(site.remainingTime === 0){
-            //console.log("Remaining time = 0");
-            get_Url();
-            rTime = "IDLE";
-            pUrl = "IDLE";
-            clearInterval(interval);
-        } 
-    },1000);
-    //document.getElementById("countdown").innerHTML = now;
-    */
-   console.log("Reached Countdowntimer func");
-   if(window.focus()){
-       alert(site.url + " is focused");
-   }
+ */
+function _getTabs(){
+    chrome.tabs.query({active:true,
+                       currentWindow:true
+                       },function(tab){
+        activeTab.endTime = new Date().getTime();
+        if(activeTab.present === true){
+            console.log("Ending timer, saving to storage..");
+            var website = new Website(activeTab.url[1],Math.max(0,activeTab.remainingTime - (activeTab.endTime - activeTab.startTime)));
+            save_to_Storage(website);
+        }
+        chrome.storage.local.get({myWebsites: []}, function(data){
+            var websites = data.myWebsites;
+            activeTab.url = stringEncapsulate(tab[0].url);
+            activeTab.endTime = null;
+            console.log(activeTab.url[0] + " currently viewed");
+            for(var i=0; i<websites.length; i++){
+                if(activeTab.url[1] === websites[i].url && websites[i].remainingTime !== 0){
+                    activeTab.startTime =  new Date().getTime();
+                    activeTab.remainingTime = websites[i].remainingTime;
+                    activeTab.present = true;
+                    console.log("Started timer..");
+                    break;
+                }
+                else
+                    activeTab.present = false;
+            }
+        });
+    });
 }
 
-//May need to call get_Url for every reload of the extension
+//-----------------
+//Website prototype
+function Website(url, remainingTime){
+    this.url = url;
+    this.remainingTime = remainingTime;
+}

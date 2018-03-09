@@ -5,49 +5,28 @@
 //var selected_Url = new Array();
 var bkPage = chrome.extension.getBackgroundPage();
 
-
-
-function my_Notification(website){
-    var notification = new Notification("My Minutes",{body: website + " saved to storage"});
-    setTimeout(function(){
-        notification.close();},
-        2000);
-}
-
-function clear_Storage(){
-    chrome.storage.local.clear(function(){
-        document.getElementById("message").innerHTML = "Clearing storage..";
-        var error = chrome.runtime.lastError;
-        if(error){
-            console.log(error);
+chrome.runtime.onMessage.addListener(
+        function(request,sender,sendResponse)
+        {
+            switch(request.message){
+                case "Update (message)" :
+                        document.getElementById("message").innerHTML = request.value;
+                        break;
+                case "Update (url)" :
+                        document.getElementById("url").innerHTML = request.value;
+                        break;
+                case "Update (time)" :
+                        document.getElementById("time").innerHTML = request.value;
+                        break;
+                case "Update (table)" :
+                        updateFromStorage();
+                        break;
+                     
+            }
         }
+);
+function clear_Storage(){
         chrome.runtime.sendMessage({message: "Reset listener"});
-    });
-}
-
-function clean_URL(url){
-    //Creating an a element to extract hostname
-    var results = bkPage.stringEncapsulate(url);
-    
-    my_Notification(results[0]);
-    var time = document.getElementById("text_field").value;
-    var website = new Website(results[1],parseInt(time));
-    bkPage.save_to_Storage(website);
-    
-    return results[0];
-}
-
-function getDomain(tabs){
-        var url = tabs[0].url;
-        document.getElementById("message").innerHTML = if_defined(url); 
-}
-
-function if_defined(url){
-    if(url!==undefined)
-        return clean_URL(url);
-    else 
-        return "No Page";
-    
 }
 
 function saveUrl(){
@@ -57,8 +36,12 @@ function saveUrl(){
         chrome.tabs.query({
         active:true,
         currentWindow:true
-    },function (tabs){
-        getDomain(tabs);
+        },function (tabs){
+            //Creating an a element to extract hostname
+            var results = bkPage.stringEncapsulate(tabs[0].url);
+            var time = document.getElementById("text_field").value;
+            var website = new bkPage.Website(results[1],parseInt(time));
+            chrome.runtime.sendMessage({message: "Save to storage", value: website});
         });
     }
     else
@@ -66,7 +49,9 @@ function saveUrl(){
 }
 
 function updateFromStorage(){
-    console.log("Reached updateTable");
+    console.log("update from storage called");
+    document.getElementById("message").innerHTML = "Updating..";
+    console.log("updatefromstorage called");
     var table = document.getElementById("table");
     while(table.rows.length > 1){
         table.deleteRow(1);
@@ -94,18 +79,10 @@ window.onload = function(){
     url_button.addEventListener("click", saveUrl);
     clear_storage.addEventListener("click", clear_Storage);
     update.addEventListener('click',updateFromStorage);
-    document.getElementById("url").innerHTML = bkPage.pUrl;
-    document.getElementById("time").innerHTML = bkPage.rTime;
-    document.getElementById("bmessage").innerHTML = bkPage.bMessage;
-    
+    updateFromStorage();
 };
 
-//-----------------
-//Website prototype
-function Website(url, remainingTime){
-    this.url = url;
-    this.remainingTime = remainingTime;
-}
+
 
 
 
