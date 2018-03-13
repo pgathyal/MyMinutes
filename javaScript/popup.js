@@ -40,7 +40,7 @@ function saveUrl(){
             //Creating an a element to extract hostname
             var results = bkPage.stringEncapsulate(tabs[0].url);
             var time = document.getElementById("text_field").value;
-            var website = new bkPage.Website(results[1],parseInt(time));
+            var website = new bkPage.Website(results[1],parseInt(time),parseInt(time));
             chrome.runtime.sendMessage({message: "Save to storage", value: website});
         });
     }
