@@ -155,7 +155,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 //Called when creating and switching tabs
 chrome.tabs.onActivated.addListener(
         function(){
-            //console.log("OnActivated called..");
+           // console.log("OnActivated called..");
            _getTabs();
 });
 
@@ -168,27 +168,36 @@ chrome.tabs.onUpdated.addListener(
                _getTabs();
            }
 });
-//One time function called in 'conception'
+
+//Compares days, not months nor years.
 window.onload = function(){
-    currentDate = new Date().getDate();
-    console.log(currentDate);
- /*   if(currentDate === undefined){
-        currentDate = today;
-    }
-    else if(currentDate !== today){
-        resetTime();
-        currentDate = today;
-    }
-    */
+    today = new Date().getDate();
+    
+    chrome.storage.local.get("Date", function (data) {
+        var storageDate = data.Date;
+        console.log("Window onload accessing storage \n Date :" + storageDate);
+        if(storageDate === today){
+            
+        }
+        else if(storageDate === undefined){
+            saveDatetoStorage(today);
+        }
+        else{
+            resetTime();
+            saveDatetoStorage(today);
+        }
+        
+    });
+    console.log("Accessing storage end");
     _pushToBlockingArray();
-    _getTabs();
+    
 };
 
-/*
- * window on load is called only once during the lifetime..at its conception
- * need to look for an browser on first open function and close function..
- * OnActivated may or may not be called when the window first opens.. 
- */
+   
+function saveDatetoStorage(date){
+    chrome.storage.local.set({Date: date}, function(){
+    }); 
+}
 
 function resetTime(){
     console.log("Resetting time");
@@ -201,24 +210,18 @@ function resetTime(){
             });
 }
 
-window.addEventListener("blur",function(){
-    console.log("Window has lost focus");
-},false);
 
 
-//TODO: Every x time call popup's update from storage
-//TODO: At midnight reset storage variables
-//TODO: Out of focus check
-//Test if timer stops on sleep/hibernate/shutdown
-/*
- */
+// Window blur: stop timer, Window focus: call get tabs
+
 function _getTabs(){
+    console.log("getTabs called");
     chrome.tabs.query({active:true,
-                       currentWindow:true
+                       lastFocusedWindow:true
                        },function(tab){
         activeTab.endTime = new Date().getTime();
         if(activeTab.present === true){
-            //console.log("Ending timer, saving to storage..");
+            console.log("Ending timer with " + activeTab.url[0] + ", saving to storage..");
             var website = new Website(activeTab.url[1],Math.max(0,activeTab.remainingTime - (activeTab.endTime - activeTab.startTime)),activeTab.originalTime);
             save_to_Storage(website);
         }
@@ -233,7 +236,10 @@ function _getTabs(){
                     activeTab.remainingTime = websites[i].remainingTime;
                     activeTab.present = true;
                     activeTab.originalTime = websites[i].originalTime;
-                    //console.log("Started timer..");
+                    console.log("Started timer with " + activeTab.url[0]);
+                    chrome.tabs.executeScript(null,{
+                        file: "javaScript/blurHandler.js"
+                    });
                     break;
                 }
                 else

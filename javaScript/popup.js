@@ -29,23 +29,39 @@ function clear_Storage(){
         chrome.runtime.sendMessage({message: "Reset listener"});
 }
 
+function convertToMilliseconds(hours,minutes){
+        var result = hours*3600000 + minutes*60000;
+        console.log(result);
+        return result;
+}
+
+function convertToTimeformat(milliseconds){
+    var hour = (Math.floor(milliseconds/3600000)).toString();
+    var minute = (Math.floor((milliseconds%3600000)/60000)).toString();
+    if(minute<10)
+        minute = "0" + minute;
+    return result = hour.concat(":",minute);
+}
+
 function saveUrl(){
-    var time = document.getElementById("text_field").value;
+    var hours = document.getElementById("text_hour").value;
+    var minutes = document.getElementById("text_minute").value;
+    var time = convertToMilliseconds(hours,minutes);
     //Validating textbox for int
-    if(!isNaN(time)&&time.length>0){
+    if(!isNaN(time)&&time>0){
         chrome.tabs.query({
         active:true,
         currentWindow:true
         },function (tabs){
             //Creating an a element to extract hostname
             var results = bkPage.stringEncapsulate(tabs[0].url);
-            var time = document.getElementById("text_field").value;
             var website = new bkPage.Website(results[1],parseInt(time),parseInt(time));
             chrome.runtime.sendMessage({message: "Save to storage", value: website});
         });
     }
     else
-       document.getElementById("message").innerHTML = "Invalid entry"; 
+        alert("Invalid entry");
+       
 }
 
 function updateFromStorage(){
@@ -60,12 +76,11 @@ function updateFromStorage(){
         var websites = data.myWebsites;
         for(var i=0; i<websites.length; i++){
             if(!document.getElementById) return;
-            //var table = document.getElementById("table");
             var row = document.createElement("tr");
             var cell1 = document.createElement("td");
             var cell2 = document.createElement("td");
-            textNode1 = document.createTextNode(websites[i].url);
-            textNode2 = document.createTextNode(websites[i].remainingTime);
+            textNode1 = document.createTextNode(websites[i].url.slice(4,websites[i].url.length - 2));
+            textNode2 = document.createTextNode(convertToTimeformat(websites[i].remainingTime));
             cell1.appendChild(textNode1);
             cell2.appendChild(textNode2);
             row.appendChild(cell1);

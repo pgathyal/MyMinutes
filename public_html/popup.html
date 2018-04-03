@@ -23,8 +23,7 @@
         }
         table{
             width: 70%;
-            margin-left: 15%;
-            margin-right: 15%;
+            margin: auto;
             margin-top: 10px;
             margin-bottom: 10px;
         }
@@ -33,8 +32,12 @@
             border: 1px solid black;
             text-align: center;
         }
-        #input-elements {
-
+        input[type="text"]{
+            width:25px;
+            text-align: center;
+        }
+        #text_hour{
+            margin-left: 25%;
         }
         #buttons-footer {
             margin-top: 10px;
@@ -60,15 +63,19 @@
         <p id="time"></p>
         <p id ="message"></p>
         
+        <div id="table-element">
         <table id="table">
             <tr>
                 <th> URL </th>
                 <th> Remaining time </th>
             </tr>
         </table>
+        </div>
         <div id="input-elements">
-            <input type="text" name="countdownTime" id="text_field" placeholder = "hh:mm">
-            <button id="url_button">Click here</button>
+            <input type="text" name="countdownHour" id="text_hour" placeholder = "hh">
+            <span id="colon">:</span>
+            <input type="text" name="countdownMinute" id="text_minute" placeholder = "mm">
+            <button id="url_button">Restrict</button>
         </div>
         <div id="buttons-footer">
             <button id="clear_storage">Clear Storage</button>
