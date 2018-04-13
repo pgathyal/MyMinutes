@@ -12,16 +12,9 @@ chrome.runtime.onMessage.addListener(
                 case "Update (message)" :
                         document.getElementById("message").innerHTML = request.value;
                         break;
-                case "Update (url)" :
-                        document.getElementById("url").innerHTML = request.value;
-                        break;
-                case "Update (time)" :
-                        document.getElementById("time").innerHTML = request.value;
-                        break;
                 case "Update (table)" :
                         updateFromStorage();
-                        break;
-                     
+                        break;    
             }
         }
 );
@@ -38,9 +31,12 @@ function convertToMilliseconds(hours,minutes){
 function convertToTimeformat(milliseconds){
     var hour = (Math.floor(milliseconds/3600000)).toString();
     var minute = (Math.floor((milliseconds%3600000)/60000)).toString();
+    var second = (Math.floor((milliseconds%60000)/1000)).toString();
     if(minute<10)
         minute = "0" + minute;
-    return result = hour.concat(":",minute);
+    if(second<10)
+        second = "0" + second;
+    return result = hour.concat(":",minute,":",second);
 }
 
 function saveUrl(){
@@ -63,11 +59,10 @@ function saveUrl(){
         alert("Invalid entry");
        
 }
+//on href click stop timer..
 
 function updateFromStorage(){
-    console.log("update from storage called");
     document.getElementById("message").innerHTML = "Updating..";
-    console.log("updatefromstorage called");
     var table = document.getElementById("table");
     while(table.rows.length > 1){
         table.deleteRow(1);
