@@ -2,18 +2,17 @@
 var startTime = new Date().getTime();
 var remainingTime = website.remainingTime;
 var originalTime = website.originalTime;
-
-var timeOut = setTimeout(function(){save_to_Storage(); startTime = null;}, 900000);
-chrome.runtime.sendMessage({message: "Special blur"});
-
+chrome.runtime.sendMessage({message: "Special focus", value: website.url});
 
 window.addEventListener("blur",function(){
-    clearTimeout(timeOut);
+    chrome.runtime.sendMessage({message: "Special blur"});
     save_to_Storage();
     startTime = null;
 });
 
 window.addEventListener("focus",function(){
+    chrome.runtime.sendMessage({message: "Special focus", value: website.url});
+    
     startTime = new Date().getTime();
     chrome.storage.local.get({myWebsites: []}, function(data){
                     var websites = data.myWebsites;
@@ -24,10 +23,10 @@ window.addEventListener("focus",function(){
                             }
                         }
                     });
-    timeOut = setTimeout(function(){save_to_Storage(); startTime = null;}, 20000);
 });
 
 window.addEventListener("beforeunload",function(){
+    chrome.runtime.sendMessage({message: "Special blur"});
     save_to_Storage();
 });
 

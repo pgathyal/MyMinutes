@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-//var selected_Url = new Array();
 var bkPage = chrome.extension.getBackgroundPage();
 
 chrome.runtime.onMessage.addListener(
@@ -59,10 +58,8 @@ function saveUrl(){
         alert("Invalid entry");
        
 }
-//on href click stop timer..
 
 function updateFromStorage(){
-    document.getElementById("message").innerHTML = "Updating..";
     var table = document.getElementById("table");
     while(table.rows.length > 1){
         table.deleteRow(1);

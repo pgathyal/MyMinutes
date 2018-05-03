@@ -1,20 +1,9 @@
 
-var rTime = "IDle";
-var pUrl = "IDle";
 
 //Get_url passes url to this parameter to block
-var url_list = ["*://9gag.com/*"];
-/*var activeTab = {
-    url : null,
-    remainingTime : null,
-    startTime: null,
-    endTime: null,
-    present: false,
-    orignalTime: null
-};
-
-var currentDate;
-*/
+var special_Urls = ["*://www.youtube.com/*","*://www.netflix.com/*"];
+var url_list = [];
+var special = null;
 /*Wrapping string function -
         returns 2 values : [0]hostname,[1]wrapped hostname
 */
@@ -28,7 +17,6 @@ function stringEncapsulate(url){
 //------------------------------------------------------------------------------
 //Main save function
 function save_to_Storage(website){
-    //console.log("Saving to storage:" + website.url + ", " + convertToTimeformat(website.remainingTime));
     chrome.storage.local.get({myWebsites: []}, function (data) {
         var websites = data.myWebsites;
         var present = false;
@@ -66,10 +54,11 @@ function saveArray_and_refresh(websites){
     }); 
 }
 
+//Test with nothing in the array and pushing nothing..
 function _pushToBlockingArray(){
     chrome.storage.local.get({myWebsites: []}, function(data){
                     var websites = data.myWebsites;
-                    url_list = ["*://9gag.com/*"];
+                    url_list.length = 0;
                     for(var i=0; i<websites.length; i++){
                             if(websites[i].remainingTime <= 0){
                                 url_list.push(websites[i].url);
@@ -117,25 +106,33 @@ chrome.runtime.onMessage.addListener(
                 var new_website = new Website(request.url, request.remainingTime, request.originalTime);
                 save_to_Storage(new_website);
                 break;
+            case "Special focus" :
+                special = request.value;
+                break;
+            case "Special blur" :
+                special = null;
+                break;
             case "Debug" :
-                //console.log("Anchor clicked");
         }
 });
 
 function clearStorage(){
-    //console.log("Clearing storage...");
     chrome.storage.local.remove(["myWebsites"],function(){
         var error = chrome.runtime.lastError;
         if(error){
             console.log(error);
         }
-        url_list = ["*://9gag.com/*"];
+        url_list.length = 0;
         updateListener();
     });
 }
 
 function updateListener(){
-    if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
+   // if(chrome.webRequest.onBeforeRequest.hasListener(blockingListener))
+    if(url_list.length === 0){
+        chrome.webRequest.onBeforeRequest.removeListener(blockingListener);
+    }
+    else if(url_list.length > 0)
     {
         chrome.webRequest.onBeforeRequest.removeListener(blockingListener);
         chrome.webRequest.onBeforeRequest.addListener(blockingListener,
@@ -143,19 +140,12 @@ function updateListener(){
                         ["blocking"]
         );
     }
+    
 }
 
 function blockingListener(details){
     return {cancel:true};
 }
-
-
-chrome.webRequest.onBeforeRequest.addListener(
-        blockingListener,
-        {urls : url_list},
-        ["blocking"]
-);
-
 
 //Creating a newtab also triggers the onUpdated listener 
 chrome.tabs.onUpdated.addListener(
@@ -202,14 +192,6 @@ function resetTime(){
             });
 }
 
-/*
- *  Alternate solutions: Pass ongoing urls to a list, pass list to manifest content scripts
- *                          Call execute script on tab first time only
- *  Find out if script is always running even if webpage is closed (reopen and test timer stats)
- *  Fall back to previous state
- */
-
-
 function _getTabs(){
     chrome.tabs.query({active:true,
                        lastFocusedWindow:true
@@ -217,14 +199,19 @@ function _getTabs(){
         chrome.storage.local.get({myWebsites: []}, function(data){
             var websites = data.myWebsites;
             var active_url = stringEncapsulate(tab[0].url);
-            //console.log(active_url + " currently viewed");
             for(var i=0; i<websites.length; i++){
+                if(active_url[1] === special)
+                        continue;
                 if(active_url[1] === websites[i].url && websites[i].remainingTime !== 0){
                     chrome.tabs.executeScript(null,{
                       code: 'var website = ' + JSON.stringify(websites[i])
                     },function(){
                             chrome.tabs.executeScript(null, {file: "jquery-3.3.1.js" },function(){
+                                if(special_Urls.includes(active_url[1])){
+                                chrome.tabs.executeScript(null, {file: "javaScript/blurHandlerSpecial.js" });
+                                }else{
                                 chrome.tabs.executeScript(null, {file: "javaScript/blurHandler.js" });
+                                }
                             });
                     });
                 }
@@ -232,42 +219,7 @@ function _getTabs(){
         });
     });
 }
-/*
-function _getTabs(){
-    console.log("getTabs called");
-    chrome.tabs.query({active:true,
-                       lastFocusedWindow:true
-                       },function(tab){
-        activeTab.endTime = new Date().getTime();
-        if(activeTab.present === true){
-            console.log("Ending timer with " + activeTab.url[0] + ", saving to storage..");
-            var website = new Website(activeTab.url[1],Math.max(0,activeTab.remainingTime - (activeTab.endTime - activeTab.startTime)),activeTab.originalTime);
-            save_to_Storage(website);
-        }
-        chrome.storage.local.get({myWebsites: []}, function(data){
-            var websites = data.myWebsites;
-            activeTab.url = stringEncapsulate(tab[0].url);
-            activeTab.endTime = null;
-            //console.log(activeTab.url[0] + " currently viewed");
-            for(var i=0; i<websites.length; i++){
-                if(activeTab.url[1] === websites[i].url && websites[i].remainingTime !== 0){
-                    activeTab.startTime =  new Date().getTime();
-                    activeTab.remainingTime = websites[i].remainingTime;
-                    activeTab.present = true;
-                    activeTab.originalTime = websites[i].originalTime;
-                    console.log("Started timer with " + activeTab.url[0]);
-                    chrome.tabs.executeScript(null,{
-                        file: "javaScript/blurHandler.js"
-                    });
-                    break;
-                }
-                else
-                    activeTab.present = false;
-            }
-        });
-    });
-}
-*/
+
 //-----------------
 //Website prototype
 function Website(url, remainingTime, originalTime){

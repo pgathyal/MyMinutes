@@ -8,17 +8,25 @@
   <head>
     <title>My Minutes</title>
     <style>
+        @font-face {
+            font-family: CaviarDreams;
+            src: url("../Fonts/CaviarDreams.ttf") format("truetype");
+        }
+        @font-face {
+            font-family: CaviarDreamsBold;
+            src: url("../Fonts/CaviarDreams_Bold.ttf") format("truetype");
+        }
         body {
           min-width: 300px;
-          font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+          font-family: "CaviarDreams", "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
           font-size: 100%;
-          background-color : #e6e6e6; 
+          background-color : #f4f4f4; 
         }
         h1 {
             text-align: center;
         }
         p{
-          font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+          font-family: "CaviarDreams", "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
           font-size: 100%;
         }
         table{
@@ -28,16 +36,37 @@
             margin-bottom: 10px;
         }
         table,th,td {
+            font-size: 20px;
             border-collapse: collapse;
             border: 1px solid black;
             text-align: center;
+        }
+        tr:nth-child(even) {
+            background-color: #f9eaee;
+        }
+        tr:nth-child(odd) {
+            background-color: white;
         }
         input[type="text"]{
             width:25px;
             text-align: center;
         }
+        .bold_first_letter{
+            font-family: CaviarDreamsBold;
+        }
         #text_hour{
+            font-family: CaviarDreams;
             margin-left: 25%;
+            border: 1px solid #fe98a6;
+        }
+        #text_minute{
+            font-family: CaviarDreams;
+            border: 1px solid #fe98a6;
+        }
+        #url_button,#clear_storage,#update{
+            font-family: CaviarDreamsBold;
+            background-color: white;
+            border: 1px solid #fe98a6;
         }
         #buttons-footer {
             margin-top: 10px;
@@ -56,12 +85,13 @@
    
   </head>
   <body>
-        <h1>My Minutes</h1>
+        <div id="header">
+        <h1><span class="bold_first_letter">M</span>y <span class="bold_first_letter">M</span>inutes</h1>
         <p id ="message"></p>
-        
+        </div>
         <div id="table-element">
         <table id="table">
-            <tr>
+            <tr style = "background-color: #fe98a6">
                 <th> URL </th>
                 <th> Remaining time </th>
             </tr>

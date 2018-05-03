@@ -1,12 +1,18 @@
 {
     "manifest_version": 2,
-    "name": "First extension",
+    "name": "My Minutes",
     "description": "The least popular Chrome extension, with atleast 1 user! Blocks urls all over the web.",
     "version": "1.0",
     
+    "icons":{
+        "16": "images/MyMinutes16.png",
+        "48": "images/MyMinutes48.png",
+        "128": "images/MyMinutes128.png"  
+    },
+    
     "browser_action":{
         "default_title": "My Minutes",
-        "default_icon": "images/icon.png",
+        "default_icon": "images/MyMinutes128.png",
         "default_popup": "public_html/popup.html"
     },
     "background":{
